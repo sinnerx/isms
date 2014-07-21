@@ -1,0 +1,178 @@
+<?php
+
+function ismscURL($link){
+
+    $http = curl_init($link);
+
+    curl_setopt($http, CURLOPT_RETURNTRANSFER, TRUE);
+    $http_result = curl_exec($http);
+    $http_status = curl_getinfo($http, CURLINFO_HTTP_CODE);
+    curl_close($http);
+
+    return $http_result;
+}
+
+if(isset($_POST["submitbtn"])){
+	//echo 'aaaa';
+	$year = $_POST['yearselect'];
+	$term = $_POST['termselect'];
+	$form = $_POST['form'];
+// Create connection
+$con=mysql_connect("localhost","pidcedu_ismsuser","010203");
+
+// Check connection
+if (!$con) {
+    die('Not connected : ' . mysql_error());
+}
+// make foo the current db
+$db_selected = mysql_select_db('pidcedu_ismsdb', $con);
+if (!$db_selected) {
+    die ('Can\'t use foo : ' . mysql_error());
+}
+  	
+if ($term == 3){
+	$sqlStudent = "SELECT DISTINCT(student.id),name FROM recordExam 
+	LEFT OUTER JOIN student ON (recordExam.`stud_id` = student.`id`) 
+	WHERE recordExam.`year` = '".$year."'";
+}
+else {
+
+	$sqlStudent = "SELECT DISTINCT(student.id),name FROM recordExam 
+	LEFT OUTER JOIN student ON (recordExam.`stud_id` = student.`id`) 
+	WHERE recordExam.`year` = '".$year."' AND recordExam.`term` = '".$term."'";
+}
+
+$resultStudent = mysql_query($sqlStudent, $con);
+$rowStudent;
+
+
+$rowStudent = array();
+
+$x=0;
+while($row = mysql_fetch_assoc($resultStudent))
+  {
+  $rowStudent[$x] = $row['id'];
+  $x++;
+  }
+
+//0195571001
+foreach ($rowStudent as $student){
+$message = "";
+	//echo $student;
+	$sqlStudInfo = "SELECT * FROM student WHERE id ='".$student."'";
+	$resultStudInfo = mysql_query($sqlStudInfo, $con);
+	$recordStudInfo = mysql_fetch_assoc($resultStudInfo);
+	//echo $recordStudInfo["name"] ."<br>";
+	$message .= $_POST['examtype']."\r\n";
+	$message .= "Nama Pelajar : ".$recordStudInfo["name"] ."\r\n";
+	if ($term == 3){	
+		$sql = "SELECT * FROM recordExam 
+		LEFT OUTER JOIN student ON (recordExam.`stud_id` = student.`id`) 
+		WHERE recordExam.`year` = '".$year."' AND recordExam.stud_id = '".$student."'  AND form = '" .$form."' ";
+	}
+	else {	
+		$sql = "SELECT * FROM recordExam 
+		LEFT OUTER JOIN student ON (recordExam.`stud_id` = student.`id`) 
+		WHERE recordExam.`year` = '".$year."' AND recordExam.`term` = '".$term."' AND recordExam.stud_id = '".$student."' AND form = '" .$form."' ";
+	}
+
+	//echo $sql;
+	$result = mysql_query($sql, $con);
+	//$row = mysqli_fetch_assoc($result);	
+	//print_r($row);
+	while($row = mysql_fetch_assoc($result))
+	  {
+	  //echo $row['ExamName']. " " . $row['ExamValue']. " " . $row['phone'];
+	 // echo "<br>";
+	  $message .= $row['ExamName']. " " . $row['ExamValue']. "\r\n";
+	  $message .= $row['form']. "\r\n";
+	  
+	  }
+	  
+	  //echo "<br><br>";
+		$destination = urlencode($recordStudInfo["phone"]);
+		   $message = html_entity_decode($message, ENT_QUOTES, 'utf-8'); 
+		   $message = urlencode($message);
+		   
+		   $username = urlencode("sinnerx");
+		   $password = urlencode("rinoa84");
+		   $sender_id = urlencode("66300");
+		   $type = 1;
+		
+		   $fp = "https://www.isms.com.my/isms_send.php";
+		   $fp .= "?un=$username&pwd=$password&dstno=$destination&msg=$message&type=$type&sendid=$sender_id";
+		   //echo $fp;
+		   
+		   $result = ismscURL($fp);
+		   //echo $result;
+	  
+	  //$message .= "<br><br>";
+	  //echo $message;
+	  }
+	//echo $message;
+  
+	mysql_close($con);
+}
+
+
+?>
+<form id="form1" name="form1" method="post" action="result.php">
+  <p>&nbsp;  </p>
+  <div align="center">
+    <table width="200" border="0">
+      <tr>
+        <td>Peperiksaan : </td>
+        <td>: </td>
+        <td><select name="examtype" id="examtype" style="
+    width: 350px;">
+          <option value="Keputusan Peperiksaan Pertengahan Tahun">Peperiksaan Pertengahan Tahun</option>
+          <option value="Keputusan Peperiksaan Akhir Tahun">Peperiksaan Akhir Tahun</option>
+        </select></td>
+      </tr>    
+      <tr>
+        <td>Tahun</td>
+        <td>: </td>
+        <td><select name="yearselect" id="yearselect" style="
+    width: 150px;">
+          <option value="2014">2014</option>
+          <option value="2015">2015</option>
+          <option value="2016">2016</option>
+          <option value="2017">2017</option>
+          <option value="2018">2018</option>
+          <option value="2019">2019</option>
+          <option value="2020">2020</option>
+        </select></td>
+      </tr>
+      <tr>
+        <td>Semester</td>
+        <td>: </td>
+        <td><select name="termselect" id="termselect" style="
+    width: 150px;">
+          <option value="1">Middle</option>
+          <option value="2">End</option>
+          <option value="3">Both</option>
+        </select></td>
+      </tr>
+      <tr>
+        <td>Tingkatan</td>
+        <td>: </td>
+        <td><select name="form" id="form" style="
+    width: 150px;">
+          <option value="1">1</option>
+        </select></td>
+      </tr>      
+      <tr>
+        <td><input type="submit" name="submitbtn" id="submitbtn" value="Submit" style="
+    width: 150px;"/></td>
+        <td>&nbsp;</td>
+        <td><input type="button" name="backbtn" id="backbtn" value="Back" onclick='window.open("menu.php","_parent")' style="
+    width: 150px;"/></td>
+      </tr>
+
+      <tr>      
+    </table>
+  </div>
+  <p align="center">&nbsp;</p>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</form>

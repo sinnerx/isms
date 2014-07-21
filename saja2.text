@@ -1,0 +1,60 @@
+{
+                        text: 'Ship City', datafield: 'id', displayfield: 'name', width: 90, columntype: 'combobox',
+                        createeditor: function (row, column, editor) {
+                            // assign a new data source to the combobox.
+                            //var list = ['Stuttgart', 'Rio de Janeiro', 'Strasbourg'];
+                            //editor.jqxComboBox({ source: list, promptText: "Please Choose:" });
+                            
+                            var dataAdapter = new $.jqx.dataAdapter(sourceParent);
+                            console.log(dataAdapter);
+/*
+            var employeesSource =
+             {
+                 datatype: "xml",
+                 datafields: [
+                     { name: 'FirstName', type: 'string' },
+                     { name: 'LastName', type: 'string' }
+                 ],
+                 root: "Employees",
+                 record: "Employee",
+                 id: 'EmployeeID',
+                 url: "../sampledata/employees.xml",
+                 async: false
+             };
+
+             var employeesAdapter = new $.jqx.dataAdapter(employeesSource, {
+                autoBind: true,
+                beforeLoadComplete: function (records) {
+                    var data = new Array();
+                    // update the loaded records. Dynamically add EmployeeName and EmployeeID fields. 
+                    for (var i = 0; i < records.length; i++) {
+                        var employee = records[i];
+                        employee.EmployeeName = employee.FirstName + " " + employee.LastName;
+                        employee.EmployeeID = employee.uid;
+                        data.push(employee);
+                    }
+                    return data;
+                }
+            });
+*/
+		
+                            
+			                // Create a jqxComboBox
+			                editor.jqxComboBox({ 
+			                	source: dataAdapter, 
+			                	//width: '200px',   
+			                	selectedIndex: 0,
+			                	//displayMember: 'name',
+			                	//valueMember: 'id',
+			                	promptText: "Please Choose:"
+			                }); 
+                        },
+                        // update the editor's value before saving it.
+                        cellvaluechanging: function (row, column, columntype, oldvalue, newvalue) {
+                            // return the old value, if the new value is empty.
+                            if (newvalue == "") return oldvalue;
+                        },
+                        initeditor: function (row, cellvalue, editor) {
+                            editor.jqxComboBox({ dropDownWidth: 100 });
+                        }
+                    },

@@ -34,7 +34,7 @@
 <div align="center">
 <table>
       <tr>
-        <td>Kepada</td>
+        <td>For</td>
         <td>: </td>
         <td><select name="for" id="for" style="
     width: 150px;">
